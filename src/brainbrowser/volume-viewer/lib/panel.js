@@ -454,6 +454,7 @@
         context.clearRect(0, 0, canvas.width, canvas.height);
 
         drawSlice(panel);
+        drawShapes(panel);
         
         panel.triggerEvent("draw", {
           volume: panel.volume,
@@ -461,20 +462,16 @@
           canvas: canvas,
           context: context
         });
-        
-        drawCursor(panel, cursor_color);
+
+        if($('button#explore').hasClass('active')) {
+          drawCursor(panel, cursor_color);
+        }
 
         if (active) {
-          context.save();
-          context.strokeStyle = "#EC2121";
-          context.lineWidth = frame_width;
-          context.strokeRect(
-            half_frame_width,
-            half_frame_width,
-            canvas.width - frame_width,
-            canvas.height - frame_width
-          );
-          context.restore();
+          $(canvas).addClass('active');
+        }
+        else {
+          $(canvas).removeClass('active');
         }
 
         panel.updated = false;
@@ -597,6 +594,45 @@
       panel.context.putImageData(image, origin.x, origin.y);
     }
 
+  }
+
+  // Draw the shapes in the current slice
+  function drawShapes(panel) {
+    var volume = panel.volume;
+    var slice = panel.slice;
+    var origin = getDrawingOrigin(panel);
+    var shapes = panel.slice.shapes;
+
+    if(shapes){
+      var i = 0;
+      var shapes_len = shapes.length;
+      while (i<shapes_len) {
+        var points = shapes[i].points;
+        var points_len = points.length;
+        var j = 0;
+        var context = panel.context;
+        context.strokeStyle = shapes[i].color;
+        context.lineWidth = 2;
+        var rgb = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(shapes[i].color);
+        context.fillStyle = "rgba("+parseInt(rgb[1],16)+","+parseInt(rgb[2],16)+","+parseInt(rgb[3],16)+",0.5)";
+        context.lineJoin = context.lineCap = 'round';
+        context.moveTo(points[j].x, points[j].y);
+        context.beginPath();
+        while (j<points_len-1) {
+          var next = points[j+1];
+          var x = next.x * Math.abs(slice.width_space.step) * panel.zoom + origin.x;
+          var y = (slice.height_space.space_length - next.y - 1) * Math.abs(slice.height_space.step) * panel.zoom + origin.y;
+          context.lineTo(x, y);
+          context.lineJoin = context.lineCap = 'round';
+          context.stroke();
+          j++;
+        }
+        context.closePath();
+        context.stroke();
+        context.fill();
+        i++;
+      }
+    }
   }
 
   // Get the origin at which slices should be drawn.

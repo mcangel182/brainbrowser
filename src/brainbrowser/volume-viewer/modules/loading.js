@@ -652,15 +652,17 @@ BrainBrowser.VolumeViewer.modules.loading = function(viewer) {
 
           current_target = event.target;
           
-          if (viewer.active_panel) {
+          if (viewer.active_panel && $('button#explore').hasClass('active')){
             viewer.active_panel.updated = true;
           }
           viewer.active_panel = panel;
 
-          document.addEventListener("mousemove", mouseDrag , false);
-          document.addEventListener("mouseup", mouseDragEnd, false);
+          if($('button#explore').hasClass('active')){
+            document.addEventListener("mousemove", mouseDrag , false);
+            document.addEventListener("mouseup", mouseDragEnd, false);
 
-          startDrag(panel.mouse, event.shiftKey, event.ctrlKey);
+            startDrag(panel.mouse, event.shiftKey, event.ctrlKey);
+          }
         }, false);
 
         canvas.addEventListener("touchstart", function(event) {
@@ -696,7 +698,7 @@ BrainBrowser.VolumeViewer.modules.loading = function(viewer) {
         }
 
         function zoom(delta) {
-          panel.zoom = Math.max(panel.zoom + delta * 0.05, 0.05);
+          panel.zoom = Math.max(panel.zoom + delta * 0.20, 0.20);
           panel.updateVolumePosition();
           panel.updateSlice();
 
